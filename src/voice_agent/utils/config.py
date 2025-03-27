@@ -1,8 +1,10 @@
 """Configuration management for the voice agent."""
+import os
 from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_core import PydanticCustomError
 
 
 class Settings(BaseSettings):
@@ -33,7 +35,19 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+    
+    def model_post_init(self, __context):
+        """Validate after initialization."""
+        if not self.openai_api_key:
+            raise PydanticCustomError(
+                "missing_api_key",
+                "OPENAI_API_KEY is required but not provided",
+                {"field": "openai_api_key"}
+            )
 
 
-# Global settings instance
-settings = Settings() 
+# Global settings instance - do not initialize at import time
+# to allow for proper testing of validation errors
+def get_settings():
+    """Get settings instance with validation."""
+    return Settings() 

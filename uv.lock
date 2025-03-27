@@ -708,6 +708,12 @@ dev = [
     { name = "pytest-cov" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=2.0.2" },
@@ -721,3 +727,9 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest-asyncio", specifier = ">=0.26.0" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
+]

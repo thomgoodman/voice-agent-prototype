@@ -36,3 +36,9 @@ asyncio_mode = "auto"
 line-length = 88
 target-version = "py39"
 select = ["E", "F", "B", "I", "N", "UP", "PL", "RUF"] 
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=0.26.0",
+    "pytest-cov>=6.0.0",
+]

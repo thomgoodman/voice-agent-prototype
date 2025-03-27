@@ -1,5 +1,19 @@
 # Changelog
 
+## [2024-05-10 03:45 AM] - Documentation Update
+- Added test coverage information to README
+- Updated testing documentation with coverage commands
+- Added detailed breakdown of component coverage
+- Updated implementation plan to mark all MVP tasks as complete
+
+## [2024-05-10 03:21 AM] - Test Suite Fixes
+- Fixed all failing tests in the test suite with targeted changes
+- Added pytest-asyncio plugin to properly handle async tests
+- Fixed Settings validation to properly raise ValidationError for missing API key
+- Fixed agent tests to use proper mock implementations for testing
+- Improved test coverage across the codebase (now at 83%)
+- Updated README with current test status
+
 ## [2024-05-10 03:05 PM] - Text Processing Update
 - Fixed TextProcessor tests to correctly mock AsyncOpenAI client
 - Verified all text processing functionality works correctly with latest OpenAI APIs

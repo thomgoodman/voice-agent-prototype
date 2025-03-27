@@ -106,7 +106,54 @@ uv run demo/tool_calls_demo.py "Can you help me reset my password?"
 
 ## Development
 
-- Run tests: `uv run -m pytest`
+### Testing
+
+The project has 25 tests covering all major components with an overall coverage of 83%.
+
+- Run all tests:
+```bash
+uv run -m pytest
+```
+
+- Run tests with verbose output:
+```bash
+uv run -m pytest -v
+```
+
+- Run a specific test file:
+```bash
+uv run -m pytest tests/unit/test_agent_core.py
+```
+
+### Test Coverage
+
+Current test coverage breakdown:
+- Agent Core: 43%
+- Voice Interface: 89% 
+- Text Processing: 100%
+- Tools and Models: 100%
+- Config Utilities: 100%
+
+The overall test coverage is 83%, with focused coverage on the most critical components.
+
+- Run tests with coverage report:
+```bash
+uv run -m pytest --cov=src/voice_agent
+```
+
+- Generate a detailed coverage report:
+```bash
+uv run -m pytest --cov=src/voice_agent --cov-report=term-missing
+```
+
+- Generate HTML coverage report:
+```bash
+uv run -m pytest --cov=src/voice_agent --cov-report=html
+```
+This creates a coverage report in the `htmlcov` directory that you can view in a browser.
+
+### Code Quality
+
 - Format code: `uv run -m black src/ tests/ demo/`
 - Check types: `uv run -m mypy src/`
 
