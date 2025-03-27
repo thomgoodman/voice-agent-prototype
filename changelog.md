@@ -14,6 +14,9 @@
 - Added comprehensive test suite for agent core
 - Improved error handling and input validation
 - Added dependency injection support for better testability
+- Added documentation directory with architecture diagram
+- Created system architecture visualization using Mermaid
+- Updated README with documentation references
 
 ### Changed
 - Simplified password reset logic for MVP to use keyword matching

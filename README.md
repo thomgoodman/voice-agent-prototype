@@ -106,12 +106,19 @@ voice-agent/
 │   ├── voice_interface_demo.py  # Simple audio recording/playback demo
 │   ├── text_demo.py             # Text-only agent demo
 │   └── voice_agent_demo.py      # Full voice agent demo
+├── docs/                # Documentation
+│   ├── architecture.md  # System architecture diagram
 ├── config/              # Configuration files
 ├── .env                 # Environment variables (not in git)
 ├── pyproject.toml       # Project metadata and dependencies
 ├── uv.lock              # Lock file for reproducible installs
 └── README.md            # This file
 ```
+
+## Documentation
+
+See the [docs](./docs) directory for detailed documentation, including:
+- [System Architecture](./docs/architecture.md) - Component diagram and descriptions
 
 ## License
 
