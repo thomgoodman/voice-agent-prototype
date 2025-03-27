@@ -93,18 +93,24 @@ This will:
 ## Project Structure
 
 ```
-voice_agent/
+voice-agent/
 ├── src/
-│   └── voice_agent/
-│       ├── voice/      # Voice interface components
-│       ├── agent/      # Agent core and tools
-│       └── text.py     # Text processing (STT/TTS)
-├── tests/              # Test suite
-├── config/             # Configuration files
-└── demo/               # Demo scripts
-    ├── voice_interface_demo.py  # Simple audio recording/playback demo
-    ├── text_demo.py             # Text-only agent demo
-    └── voice_agent_demo.py      # Full voice agent demo
+│   └── voice_agent/     # Main package
+│       ├── agent/       # Agent core and tools
+│       ├── voice/       # Voice interface components
+│       ├── utils/       # Utility functions
+│       ├── text.py      # Text processing (STT/TTS)
+│       └── __init__.py
+├── tests/               # Test suite
+├── demo/                # Demo scripts
+│   ├── voice_interface_demo.py  # Simple audio recording/playback demo
+│   ├── text_demo.py             # Text-only agent demo
+│   └── voice_agent_demo.py      # Full voice agent demo
+├── config/              # Configuration files
+├── .env                 # Environment variables (not in git)
+├── pyproject.toml       # Project metadata and dependencies
+├── uv.lock              # Lock file for reproducible installs
+└── README.md            # This file
 ```
 
 ## License
