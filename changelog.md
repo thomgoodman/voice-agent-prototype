@@ -17,11 +17,17 @@
 - Added documentation directory with architecture diagram
 - Created system architecture visualization using Mermaid
 - Updated README with documentation references
+- Enhanced agent core with proper OpenAI function calling
+- Added detailed logging of tool calls and responses
+- Created new tool_calls_demo.py script to showcase tool call logging
 
 ### Changed
-- Simplified password reset logic for MVP to use keyword matching
-- Updated test assertions to use correct field names
-- Improved OpenAI client mocking strategy
+- Updated VoiceAgent to use proper tool definitions
+- Improved error handling with more detailed logging
+- Removed keyword-based fallback mechanism in favor of pure function calling
+- Simplified agent logic to rely solely on OpenAI function calling
+- Enhanced error handling for ambiguous password-related requests
+- Improved demo script to provide better feedback on different error types
 
 ### Technical Details
 - Agent core now supports custom OpenAI client injection

@@ -84,6 +84,26 @@ This will:
 
 **Note:** This demo requires a working microphone and speakers.
 
+### 4. Tool Calls Demo
+
+This demo showcases the agent's function calling capability with detailed logging.
+
+```bash
+uv run demo/tool_calls_demo.py
+```
+
+This will:
+1. Send a password reset request to the agent
+2. Display detailed logs of the OpenAI tool calls
+3. Show how the agent processes the request
+4. Generate a temporary password
+
+You can also provide your own input text:
+
+```bash
+uv run demo/tool_calls_demo.py "Can you help me reset my password?"
+```
+
 ## Development
 
 - Run tests: `uv run -m pytest`
