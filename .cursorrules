@@ -136,18 +136,27 @@ class PasswordResetTool:
 ### Project Structure
 ```
 voice_agent/
-├── src/
-│   ├── voice/
-│   │   ├── input.py
-│   │   └── output.py
-│   ├── agent/
-│   │   ├── core.py
-│   │   └── tools.py
-│   └── utils/
-│       └── config.py
-├── tests/
-├── config/
-└── demo/
+├── README.md           # Project overview
+├── .env                # Environment variables
+├── .env.example        # Example environment variables
+├── .gitignore          # Git ignore rules
+├── changelog.md        # Change history
+├── pyproject.toml      # Project metadata and dependencies
+├── uv.lock             # Dependency lock file
+├── config/             # Configuration files
+├── demo/               # Demo scripts
+├── docs/               # Detailed documentation
+│   ├── api/            # API reference
+│   ├── guides/         # User guides
+│   └── examples/       # Code examples
+├── src/                # Source code
+│   └── voice_agent/    # Main package
+│       ├── __init__.py
+│       ├── agent/      # Agent functionality
+│       ├── voice/      # Voice processing
+│       ├── utils/      # Utility functions
+│       └── text.py     # Text processing
+└── tests/              # Test files
 ```
 
 ### Key Classes

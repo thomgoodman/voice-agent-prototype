@@ -1,7 +1,7 @@
 ---
 description: Enforces documentation standards for Python projects
-globs: ["**/*.py", "**/*.md", "**/*.rst"]
-alwaysApply: true
+globs: ["**/*.py"]
+alwaysApply: false
 ---
 
 # Documentation Standards
@@ -12,12 +12,26 @@ alwaysApply: true
 ```
 voice_agent/
 ├── README.md           # Project overview
-├── CONTRIBUTING.md     # Contribution guidelines
-├── docs/              # Detailed documentation
-│   ├── api/           # API reference
-│   ├── guides/        # User guides
-│   └── examples/      # Code examples
-└── tests/             # Test documentation
+├── .env                # Environment variables
+├── .env.example        # Example environment variables
+├── .gitignore          # Git ignore rules
+├── changelog.md        # Change history
+├── pyproject.toml      # Project metadata and dependencies
+├── uv.lock             # Dependency lock file
+├── config/             # Configuration files
+├── demo/               # Demo scripts
+├── docs/               # Detailed documentation
+│   ├── api/            # API reference
+│   ├── guides/         # User guides
+│   └── examples/       # Code examples
+├── src/                # Source code
+│   └── voice_agent/    # Main package
+│       ├── __init__.py
+│       ├── agent/      # Agent functionality
+│       ├── voice/      # Voice processing
+│       ├── utils/      # Utility functions
+│       └── text.py     # Text processing
+└── tests/              # Test files
 ```
 
 ### README.md Requirements

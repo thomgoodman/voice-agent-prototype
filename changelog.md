@@ -102,3 +102,11 @@
 - Created comprehensive demo script that demonstrates the complete workflow
 - Completed all tasks for Phase 1.6 of the implementation plan
 - The MVP now properly uses the LLM for processing user requests
+
+## 2024-03-27T08:45:00Z
+- Updated project structure documentation in .cursorrules to match the actual implementation
+
+## 2024-03-27T09:15:00Z
+- Updated documentation-standards rule with the correct project structure
+- Aligned the rule's repository structure with the actual implementation
+- Fixed globs and alwaysApply settings in the rule definition
