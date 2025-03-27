@@ -1,0 +1,76 @@
+---
+description: Enforces consistent standards for Cursor rule creation and organization
+globs: [".cursor/rules/*.mdc"]
+alwaysApply: true
+---
+
+# Rule Creation Standards
+
+All Cursor rules MUST:
+1. Be located in the `.cursor/rules` directory
+2. Use the `.mdc` file extension
+3. Include the following frontmatter:
+   - `description`: Clear explanation of the rule's purpose
+   - `globs`: Array of file patterns the rule applies to
+   - `alwaysApply`: Boolean indicating if rule should always be enforced
+4. Include a content section with examples
+
+## ✅ Good Example
+
+```mdc
+---
+description: Enforces consistent import ordering in Python files
+globs: ["**/*.py"]
+alwaysApply: true
+---
+
+# Python Import Ordering
+
+Imports must be grouped and ordered as follows:
+1. Standard library imports
+2. Third-party imports
+3. Local application imports
+
+## Examples
+
+✅ Good:
+```python
+import os
+import sys
+
+import pandas as pd
+import numpy as np
+
+from myapp.utils import helper
+```
+
+❌ Bad:
+```python
+from myapp.utils import helper
+import numpy as np
+import os
+import pandas as pd
+import sys
+```
+```
+
+## ❌ Bad Example
+
+```mdc
+# Python Import Rules
+
+This rule is for Python imports.
+They should be ordered properly.
+
+Example:
+import os
+import pandas
+```
+
+Problems with the bad example:
+- Missing frontmatter
+- No clear description
+- No globs specified
+- No alwaysApply setting
+- Poor example formatting
+- No clear good/bad examples

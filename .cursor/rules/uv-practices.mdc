@@ -1,0 +1,290 @@
+---
+description: Enforces best practices for using uv package manager in Python projects
+globs: ["**/pyproject.toml", "**/requirements.txt", "**/requirements.in", "**/*.py"]
+alwaysApply: true
+---
+
+# uv Best Practices
+
+uv is an extremely fast Python package and project manager that replaces multiple tools (pip, pip-tools, pipx, poetry, etc.). Follow these practices for optimal usage.
+
+## Project Setup
+
+### ✅ Good Practices
+
+1. Initialize new projects with `uv init`:
+```bash
+uv init myproject
+cd myproject
+```
+
+2. Use lockfiles for dependency management:
+```bash
+# Add dependencies
+uv add package_name
+
+# Lock dependencies
+uv lock
+
+# Install from lockfile
+uv sync
+```
+
+3. Use virtual environments consistently:
+```bash
+# Create venv with specific Python version
+uv venv --python 3.12
+
+# Run commands in venv
+uv run my_script.py
+```
+
+4. Manage script dependencies with inline metadata:
+```python
+# example.py
+"""
+Requires:
+- requests>=2.31.0
+- pydantic>=2.0.0
+"""
+import requests
+from pydantic import BaseModel
+```
+
+### ❌ Bad Practices
+
+1. Mixing package managers:
+```bash
+# DON'T mix pip and uv
+pip install package1
+uv add package2
+```
+
+2. Skipping lockfiles:
+```bash
+# DON'T install without locking
+uv add package_name --no-lock
+```
+
+3. Direct pip installs in virtual environments:
+```bash
+# DON'T bypass uv
+source .venv/bin/activate
+pip install package_name
+```
+
+## Dependency Management
+
+### ✅ Good Practices
+
+1. Separate development and production dependencies:
+```bash
+# Development dependencies
+uv add --dev pytest black mypy
+
+# Production dependencies
+uv add fastapi pydantic
+```
+
+2. Generate and maintain requirements files:
+```bash
+# Generate requirements.txt from pyproject.toml
+uv pip compile pyproject.toml -o requirements.txt
+
+# Generate dev requirements
+uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
+```
+
+3. Use editable installs for development:
+```bash
+# Install package in editable mode
+uv pip install -e .
+```
+
+4. Regular dependency auditing:
+```bash
+# Check for known vulnerabilities
+uv pip audit
+
+# List outdated packages
+uv pip list --outdated
+```
+
+### ❌ Bad Practices
+
+1. Mixing dependency types:
+```bash
+# DON'T mix dev and prod dependencies
+uv add pytest fastapi
+```
+
+2. Manual requirements management:
+```bash
+# DON'T manually edit requirements files
+echo "package==1.0.0" >> requirements.txt
+```
+
+## Environment Management
+
+### ✅ Good Practices
+
+1. Create environment-specific requirements:
+```bash
+# Production requirements
+uv pip compile requirements.in -o requirements-prod.txt
+
+# Staging with constraints
+uv pip compile requirements.in -o requirements-staging.txt --constraint constraints-staging.txt
+```
+
+2. Clean environment maintenance:
+```bash
+# Remove unused packages
+uv pip uninstall-unused
+
+# Clean cache
+uv cache clean
+```
+
+### ❌ Bad Practices
+
+1. Sharing environments across projects:
+```bash
+# DON'T reuse environments
+uv venv /shared/venv
+```
+
+## Tool Management
+
+### ✅ Good Practices
+
+1. Use `uvx` for one-off tool execution:
+```bash
+uvx ruff check .
+```
+
+2. Install persistent tools with `uv tool install`:
+```bash
+uv tool install ruff black mypy
+```
+
+### ❌ Bad Practices
+
+1. Using pipx when uv is available:
+```bash
+# DON'T use pipx
+pipx install ruff
+```
+
+## Python Version Management
+
+### ✅ Good Practices
+
+1. Pin Python versions per project:
+```bash
+uv python pin 3.12
+```
+
+2. Install multiple versions as needed:
+```bash
+uv python install 3.10 3.11 3.12
+```
+
+### ❌ Bad Practices
+
+1. Manual Python version management:
+```bash
+# DON'T manage Python versions manually
+pyenv install 3.12
+pyenv local 3.12
+```
+
+## Build and Distribution
+
+### ✅ Good Practices
+
+1. Use reproducible builds:
+```bash
+# Build package
+uv pip build .
+
+# Build wheel only
+uv pip build . --wheel
+```
+
+2. Verify build integrity:
+```bash
+# Verify hash consistency
+uv pip verify
+```
+
+### ❌ Bad Practices
+
+1. Manual build processes:
+```bash
+# DON'T use setup.py directly
+python setup.py bdist_wheel
+```
+
+## Performance Optimization
+
+### ✅ Good Practices
+
+1. Use universal lockfiles for cross-platform compatibility:
+```bash
+uv pip compile requirements.in --universal
+```
+
+2. Leverage the global cache:
+```bash
+# Cache is automatically used
+uv sync
+```
+
+### ❌ Bad Practices
+
+1. Platform-specific locks:
+```bash
+# DON'T create platform-dependent locks
+uv pip compile requirements.in --no-universal
+```
+
+## Integration with CI/CD
+
+### ✅ Good Practices
+
+1. Use lockfiles in CI:
+```yaml
+- name: Install dependencies
+  run: |
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv sync
+```
+
+2. Cache dependencies:
+```yaml
+- uses: actions/cache@v3
+  with:
+    path: ~/.cache/uv
+    key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
+```
+
+3. Enforce reproducible builds:
+```yaml
+- name: Install dependencies
+  run: uv sync --frozen-lockfile
+```
+
+### ❌ Bad Practices
+
+1. Installing without lockfiles in CI:
+```yaml
+# DON'T install without locks in CI
+- run: uv add -r requirements.txt
+```
+
+2. Skipping dependency verification:
+```yaml
+# DON'T skip verification
+- run: uv sync --no-verify
+``` 

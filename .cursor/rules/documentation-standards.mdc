@@ -1,0 +1,261 @@
+---
+description: Enforces documentation standards for Python projects
+globs: ["**/*.py", "**/*.md", "**/*.rst"]
+alwaysApply: true
+---
+
+# Documentation Standards
+
+## Project Documentation
+
+### Repository Structure
+```
+voice_agent/
+├── README.md           # Project overview
+├── CONTRIBUTING.md     # Contribution guidelines
+├── docs/              # Detailed documentation
+│   ├── api/           # API reference
+│   ├── guides/        # User guides
+│   └── examples/      # Code examples
+└── tests/             # Test documentation
+```
+
+### README.md Requirements
+- Project name and description
+- Installation instructions
+- Quick start guide
+- Basic usage example
+- Link to full documentation
+- License information
+
+### Example README.md
+```markdown
+# Voice Agent
+
+A voice-enabled AI agent using OpenAI's Agent SDK for Python.
+
+## Installation
+
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
+## Quick Start
+
+```python
+from voice_agent import VoiceAgent
+
+agent = VoiceAgent()
+response = agent.process_voice_command("reset my password")
+print(response)
+```
+
+See [documentation](./docs/README.md) for more details.
+```
+
+## Code Documentation
+
+### Module Documentation
+- Module-level docstring explaining purpose
+- List of main classes/functions
+- Usage examples
+- Dependencies and requirements
+
+### Example
+```python
+"""Voice processing module for handling audio input/output.
+
+This module provides classes and functions for processing voice commands,
+including audio capture, speech-to-text conversion, and text-to-speech synthesis.
+
+Main Classes:
+    - VoiceProcessor: Handles audio processing and conversion
+    - AudioCapture: Manages audio input from microphone
+    - AudioPlayback: Handles audio output
+
+Dependencies:
+    - PyAudio>=0.2.13
+    - numpy>=1.24.0
+    - openai>=1.0.0
+"""
+
+import numpy as np
+import openai
+import pyaudio
+```
+
+### Class Documentation
+- Clear class description
+- Attributes and their types
+- Method descriptions
+- Usage examples
+
+### Example
+```python
+class VoiceProcessor:
+    """Process audio for voice commands.
+    
+    Handles audio capture, processing, and playback for voice interactions.
+    Supports various audio formats and sampling rates.
+    
+    Attributes:
+        sample_rate (int): Audio sampling rate in Hz
+        channels (int): Number of audio channels
+        chunk_size (int): Size of audio chunks for processing
+        
+    Example:
+        >>> processor = VoiceProcessor(sample_rate=16000)
+        >>> audio = processor.capture_audio()
+        >>> text = processor.convert_to_text(audio)
+        >>> print(text)
+        "reset my password"
+    """
+```
+
+### Function Documentation
+- Clear description of purpose
+- Parameter descriptions with types
+- Return value description
+- Error conditions
+- Usage examples
+
+### Example
+```python
+def process_audio(
+    audio_data: bytes,
+    sample_rate: int = 16000,
+    normalize: bool = True
+) -> np.ndarray:
+    """Process raw audio data for voice recognition.
+    
+    Converts raw audio bytes to numpy array and applies preprocessing
+    including normalization and noise reduction if specified.
+    
+    Args:
+        audio_data: Raw audio data as bytes
+        sample_rate: Audio sampling rate in Hz
+        normalize: Whether to normalize audio amplitude
+        
+    Returns:
+        Processed audio as numpy array
+        
+    Raises:
+        ValueError: If audio_data is empty or invalid
+        RuntimeError: If processing fails
+        
+    Example:
+        >>> raw_audio = capture_audio()
+        >>> processed = process_audio(raw_audio, sample_rate=16000)
+        >>> result = recognize_speech(processed)
+    """
+```
+
+## API Documentation
+
+### API Reference
+- Complete function/class signatures
+- Parameter descriptions
+- Return types
+- Error handling
+- Cross-references
+
+### Example
+```python
+class VoiceAgent:
+    """Main voice agent interface.
+    
+    Args:
+        model (str): OpenAI model to use
+        temperature (float, optional): Sampling temperature
+        max_tokens (int, optional): Maximum response length
+        
+    Attributes:
+        model (str): Current model name
+        voice_processor (:class:`VoiceProcessor`): Audio processor
+        
+    See Also:
+        :class:`VoiceProcessor`: For audio processing details
+        :class:`AudioCapture`: For audio input handling
+    """
+    
+    def process_command(
+        self,
+        command: str,
+        *,
+        timeout: float = 10.0
+    ) -> dict:
+        """Process a voice command.
+        
+        Args:
+            command: Voice command text
+            timeout: Maximum processing time in seconds
+            
+        Returns:
+            dict: {
+                'response': str,  # Agent response
+                'action': str,    # Action taken
+                'status': str     # Success/failure
+            }
+            
+        Raises:
+            TimeoutError: If processing exceeds timeout
+            ValueError: If command is invalid
+            
+        See Also:
+            :meth:`capture_voice`: For voice input
+            :meth:`play_response`: For response playback
+        """
+```
+
+## Inline Documentation
+
+### Comments
+- Explain complex algorithms
+- Document assumptions
+- Note potential issues
+- TODO/FIXME format
+
+### Example
+```python
+def process_audio_chunk(chunk: bytes) -> bytes:
+    # Convert to numpy array for processing
+    # Note: Assumes 16-bit PCM audio
+    data = np.frombuffer(chunk, dtype=np.int16)
+    
+    # TODO: Add noise reduction
+    # FIXME: High CPU usage with large chunks
+    
+    # Apply preprocessing
+    if len(data) > 0:
+        # Normalize amplitude to [-1, 1]
+        data = data.astype(np.float32) / 32768.0
+    
+    return data.tobytes()
+```
+
+## Documentation Testing
+
+### Doctest Examples
+- Include practical examples
+- Test edge cases
+- Show expected output
+- Handle errors appropriately
+
+### Example
+```python
+def normalize_audio(samples: np.ndarray) -> np.ndarray:
+    """Normalize audio samples to [-1, 1] range.
+    
+    >>> samples = np.array([0, 32767, -32768], dtype=np.int16)
+    >>> normalized = normalize_audio(samples)
+    >>> print(normalized)
+    [ 0.  1. -1.]
+    
+    >>> normalize_audio(np.array([]))
+    Traceback (most recent call last):
+        ...
+    ValueError: Empty audio data
+    """
+``` 

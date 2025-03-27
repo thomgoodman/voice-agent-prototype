@@ -1,0 +1,238 @@
+---
+description: Enforces best practices for using OpenAI Agents SDK in Python projects
+globs: ["**/*.py"]
+alwaysApply: true
+---
+
+# OpenAI Agents SDK Best Practices
+
+## Agent Configuration
+
+### ✅ Good Practices
+
+1. Clear agent naming and instructions:
+```python
+agent = Agent(
+    name="VoicePasswordReset",
+    instructions="Handle password reset requests via voice interface",
+    model="gpt-4-turbo",
+)
+```
+
+2. Proper tool definition:
+```python
+from agents import function_tool
+from typing import Optional
+
+@function_tool
+def reset_password(user_id: str) -> dict:
+    """Reset user password and return result.
+    
+    Args:
+        user_id: Unique identifier for the user
+        
+    Returns:
+        dict: Status and new temporary password
+    """
+    return {
+        "status": "success",
+        "temp_password": "generated_password"
+    }
+```
+
+3. Type-safe context usage:
+```python
+from dataclasses import dataclass
+from agents import Agent
+
+@dataclass
+class VoiceContext:
+    session_id: str
+    user_id: Optional[str]
+    audio_quality: float
+
+agent = Agent[VoiceContext](
+    name="VoiceAgent",
+    instructions="Process voice commands",
+    tools=[reset_password]
+)
+```
+
+4. Structured outputs with Pydantic:
+```python
+from pydantic import BaseModel
+
+class PasswordResetResult(BaseModel):
+    success: bool
+    message: str
+    temporary_password: Optional[str]
+
+agent = Agent(
+    name="PasswordReset",
+    instructions="Handle password reset requests",
+    output_type=PasswordResetResult
+)
+```
+
+### ❌ Bad Practices
+
+1. Vague or missing agent configuration:
+```python
+# DON'T use unclear names or instructions
+agent = Agent(
+    name="agent1",
+    instructions="help users"
+)
+```
+
+2. Untyped tool definitions:
+```python
+# DON'T skip type hints or documentation
+@function_tool
+def reset_pwd(id):
+    return "done"
+```
+
+3. Raw context objects:
+```python
+# DON'T use unstructured context
+agent = Agent(
+    context={"some": "data"}  # Use proper context classes instead
+)
+```
+
+## Tool Usage
+
+### ✅ Good Practices
+
+1. Force tool usage when required:
+```python
+from agents import ModelSettings
+
+agent = Agent(
+    name="PasswordReset",
+    model_settings=ModelSettings(
+        tool_choice="required"  # Force tool usage
+    )
+)
+```
+
+2. Stop after tool execution when appropriate:
+```python
+agent = Agent(
+    name="PasswordReset",
+    tool_use_behavior="stop_on_first_tool"  # Don't continue processing
+)
+```
+
+3. Clear tool documentation:
+```python
+@function_tool
+def validate_user(
+    user_id: str,
+    voice_print: bytes
+) -> bool:
+    """Validate user identity using voice print.
+    
+    Args:
+        user_id: User's unique identifier
+        voice_print: Raw audio data of user's voice
+        
+    Returns:
+        bool: True if validation successful
+        
+    Raises:
+        ValueError: If voice_print is invalid
+    """
+    pass
+```
+
+### ❌ Bad Practices
+
+1. Mixing tool behaviors:
+```python
+# DON'T mix forced tools with auto continuation
+agent = Agent(
+    model_settings=ModelSettings(tool_choice="required"),
+    tool_use_behavior="stop_on_first_tool"
+)
+```
+
+## Lifecycle Management
+
+### ✅ Good Practices
+
+1. Proper hooks implementation:
+```python
+from agents import AgentHooks
+
+class VoiceAgentHooks(AgentHooks):
+    async def pre_run(self, context: VoiceContext):
+        """Prepare resources before agent run."""
+        await context.initialize_audio()
+    
+    async def post_run(self, context: VoiceContext):
+        """Cleanup after agent run."""
+        await context.cleanup_audio()
+```
+
+2. Guardrails for input validation:
+```python
+from agents import Guardrail
+
+class AudioQualityGuardrail(Guardrail):
+    async def check(self, input: str, context: VoiceContext) -> bool:
+        return context.audio_quality >= 0.8
+```
+
+### ❌ Bad Practices
+
+1. Missing cleanup:
+```python
+# DON'T skip resource cleanup
+class BadHooks(AgentHooks):
+    async def pre_run(self, context):
+        context.open_resource()
+    # Missing post_run for cleanup
+```
+
+## Voice Agent Specific
+
+### ✅ Good Practices
+
+1. Clear audio processing pipeline:
+```python
+from agents.voice import Pipeline, Workflow
+
+pipeline = Pipeline(
+    workflow=Workflow.VOICE_IN_VOICE_OUT,
+    stt_model="whisper-1",
+    tts_model="tts-1"
+)
+```
+
+2. Proper error handling:
+```python
+try:
+    result = await pipeline.run(audio_input)
+except VoiceRecognitionError:
+    # Handle speech recognition failure
+    pass
+except AgentError:
+    # Handle agent processing failure
+    pass
+```
+
+### ❌ Bad Practices
+
+1. Ignoring audio quality:
+```python
+# DON'T skip audio validation
+pipeline.run(audio_input, validate=False)
+```
+
+2. Missing error handling:
+```python
+# DON'T ignore potential errors
+result = pipeline.run(audio_input)
+``` 

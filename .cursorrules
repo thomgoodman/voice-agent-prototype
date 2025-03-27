@@ -1,0 +1,280 @@
+You are an expert Python developer with exceptional experience in AI Engineering.
+
+# Goal
+
+We are building a voice agent. This voice agent will use the OpenAI Agents SDK for Python.
+
+MOST IMPORTANT: MVP is the up-front focus. It should be demo-able. Everything else follows.
+
+The MVP will feature an AI agent application that can:
+- receive user voice input, 
+- convert it to text, 
+- pass the text to an agent
+- the agent uses tools/functions as many times as it needs to complete the task
+- when the task is completed, convert text to speech
+- deliver final response to user
+
+The task that the user will complete is: "reset my password".
+
+For the MVP, this will just be a function or tool that returns a mocked response.
+
+IMPORTANT
+- ALWAYS use UV, NEVER PIP or PYTHON or SOURCE
+- Use industry standard Python best practices
+- There should be a way to demo the MVP
+- When writing production code, take a Test-Driven-Development Approach. This means write the test first, then implement the code to make the test pass, and always verify that the tests pass.
+- ALWAYS when you are finished with each task, update the Implementation Plan by checking off the items you completed.
+- ALWAYS Update the README when necessary
+- When you are done with a task, write an entry to `changelog.md` that includes an accurate current timestamp.
+
+# Voice-Enabled Password Reset Agent Specification
+
+## 1. System Architecture
+
+### Core Components
+- **Voice Interface Module**
+  - Input: Audio capture using PyAudio
+  - Output: Text-to-speech using OpenAI TTS API
+- **Text Processing Module**
+  - Speech-to-text using OpenAI Whisper API
+  - Text normalization and validation
+- **Agent Core**
+  - OpenAI Agents SDK integration
+  - Tool management and execution
+- **Password Reset Tool**
+  - Mock implementation for MVP
+  - Extensible for real backend integration
+
+### Data Flow
+```mermaid
+graph LR
+    A[Voice Input] --> B[Speech-to-Text]
+    B --> C[Agent Core]
+    C --> D[Tools/Functions]
+    D --> C
+    C --> E[Text-to-Speech]
+    E --> F[Voice Output]
+```
+
+### Dependencies
+```toml
+[dependencies]
+openai = "^1.x"
+pyaudio = "^0.2.x"
+pydantic = "^2.x"
+pytest = "^8.x"
+```
+
+## 2. Functional Requirements
+
+### Voice Processing
+- **Input**
+  - Capture 16kHz, 16-bit mono audio
+  - Support variable-length recordings
+  - Auto-detect speech end
+- **Output**
+  - Clear, natural speech synthesis
+  - Support for error messages
+  - Volume normalization
+
+### Agent Workflow
+1. Capture voice input
+2. Convert to text (Whisper)
+3. Process through Agent
+4. Execute password reset tool
+5. Generate response
+6. Convert to speech
+7. Deliver audio output
+
+### Mock Password Reset
+- Generate temporary password
+- Simulate delay (200-500ms)
+- Return success/failure status
+
+## 3. Technical Specifications
+
+### API Interfaces
+
+```python
+class VoiceInterface:
+    async def capture_audio() -> bytes
+    async def play_audio(audio: bytes) -> None
+
+class TextProcessor:
+    async def speech_to_text(audio: bytes) -> str
+    async def text_to_speech(text: str) -> bytes
+
+class PasswordResetTool:
+    async def reset_password(user_id: str) -> ResetResult
+```
+
+### Error Handling
+- Retry logic for API calls (max 3 attempts)
+- Graceful degradation for audio issues
+- Clear error messages for user feedback
+
+### Performance Requirements
+- Voice input processing: <2s
+- Agent response time: <3s
+- Total interaction time: <10s
+
+### Security
+- Audio data temporary storage only
+- No persistent storage of voice data
+- Secure API key management
+
+### Testing Strategy
+- Unit tests: Components in isolation
+- Integration tests: Component interactions
+- E2E tests: Complete voice workflow
+- Mock tests: API responses
+
+## 4. Implementation Details
+
+### Project Structure
+```
+voice_agent/
+├── src/
+│   ├── voice/
+│   │   ├── input.py
+│   │   └── output.py
+│   ├── agent/
+│   │   ├── core.py
+│   │   └── tools.py
+│   └── utils/
+│       └── config.py
+├── tests/
+├── config/
+└── demo/
+```
+
+### Key Classes
+```python
+class VoiceAgent:
+    async def handle_interaction(self) -> None:
+        audio = await self.voice_interface.capture_audio()
+        text = await self.text_processor.speech_to_text(audio)
+        response = await self.agent.run(text)
+        audio_response = await self.text_processor.text_to_speech(response)
+        await self.voice_interface.play_audio(audio_response)
+```
+
+### Configuration
+```python
+class Settings(BaseSettings):
+    openai_api_key: str
+    audio_sample_rate: int = 16000
+    max_recording_seconds: int = 30
+    model_name: str = "gpt-4-turbo"
+```
+
+### Demo Implementation
+```python
+async def run_demo():
+    agent = VoiceAgent()
+    print("Say 'reset my password'...")
+    await agent.handle_interaction()
+```
+
+## Implementation Risks
+
+1. **Technical Risks**
+   - Audio capture quality issues
+   - API reliability/latency
+   - Speech recognition accuracy
+
+2. **Mitigation Strategies**
+   - Robust error handling
+   - Fallback mechanisms
+   - Clear user feedback
+
+## Success Criteria
+
+1. **Functional**
+   - Successful voice-to-voice interaction
+   - Accurate speech recognition
+   - Proper agent tool execution
+
+2. **Non-functional**
+   - Response time <10s
+   - 95% uptime
+   - Clear audio quality
+
+This specification provides a foundation for implementing the voice-enabled password reset agent while maintaining flexibility for future enhancements.
+
+# Voice Agent Implementation Plan
+
+## Phase 1: Core Infrastructure (MVP Focus)
+1. Project Setup (Day 1) ✓
+   - [x] Initialize project structure
+   - [x] Set up uv and dependencies
+   - [x] Create basic config management
+
+2. Mock Password Reset Tool (Day 1) ✓
+   - [x] Implement simple async function
+   - [x] Add simulated delay
+   - [x] Include basic error cases
+   - [x] Write tests
+
+3. Agent Core (Days 2-3) ✓
+   - [x] Implement basic Agent class using OpenAI SDK
+   - [x] Add password reset tool integration
+   - [x] Write tests for agent-tool interaction
+   - [x] Test with direct text input
+
+4. Text Processing (Days 3-4) ✓
+   - [x] Implement Whisper API integration
+   - [x] Add OpenAI TTS integration
+   - [x] Create TextProcessor class
+   - [x] Write tests for text conversions
+
+5. Basic Voice Interface (Days 4-5) ✓
+   - [x] Implement PyAudio recording
+   - [x] Add basic playback functionality
+   - [x] Create simple CLI demo
+   - [x] Test audio capture/playback
+
+6. MVP Integration (Day 5)
+   - [ ] Connect all components
+   - [ ] Create end-to-end demo script
+   - [ ] Basic error handling
+   - [ ] Test complete flow
+
+## Phase 2: Enhancement & Hardening
+7. Error Handling & Reliability
+   - Add retry logic
+   - Improve error messages
+   - Add logging
+   - Enhance test coverage
+
+8. Voice Processing Improvements
+   - Add voice activity detection
+   - Improve audio quality
+   - Add volume normalization
+   - Performance optimization
+
+9. Agent Enhancements
+   - Add conversation context
+   - Improve prompt engineering
+   - Add additional tools
+   - Response optimization
+
+## MVP Success Criteria
+- User can speak "reset my password"
+- Speech is accurately converted to text
+- Agent processes request using mock tool
+- Response is converted to speech
+- Audio response is played back
+- Total interaction completes in <10s
+- Basic error handling works
+
+## Initial MVP Deliverable (5 days)
+A working demo that:
+1. Captures voice input
+2. Converts to text
+3. Processes through basic agent
+4. Executes mock password reset
+5. Converts response to speech
+6. Plays audio response
+
+Focus is on basic functionality over polish. Each component should have tests and basic error handling. 

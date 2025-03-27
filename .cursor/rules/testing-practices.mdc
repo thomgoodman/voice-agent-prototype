@@ -1,0 +1,209 @@
+---
+description: Enforces testing best practices for Python projects using pytest
+globs: ["**/test_*.py", "**/tests/*.py"]
+alwaysApply: true
+---
+
+# Testing Best Practices
+
+## Test Organization
+
+### Directory Structure
+```
+voice_agent/
+├── src/
+│   └── voice_agent/
+│       ├── core.py
+│       └── utils.py
+└── tests/
+    ├── unit/
+    │   ├── test_core.py
+    │   └── test_utils.py
+    ├── integration/
+    │   └── test_voice_processing.py
+    └── conftest.py
+```
+
+### Test Types
+- Unit Tests: Test individual components in isolation
+- Integration Tests: Test component interactions
+- End-to-End Tests: Test complete voice processing workflow
+- Performance Tests: Test audio processing latency and resource usage
+
+## Test File Structure
+
+### Naming Conventions
+- Test files: `test_*.py`
+- Test functions: `test_*`
+- Test classes: `Test*`
+- Fixture functions: `fixture_*` or descriptive names
+
+### Example
+```python
+# test_voice_processor.py
+import pytest
+from voice_agent.core import VoiceProcessor
+
+@pytest.fixture
+def audio_processor():
+    return VoiceProcessor(sample_rate=16000)
+
+def test_process_audio_handles_empty_input(audio_processor):
+    with pytest.raises(ValueError):
+        audio_processor.process(b"")
+
+class TestVoiceProcessor:
+    def test_initialization(self, audio_processor):
+        assert audio_processor.sample_rate == 16000
+```
+
+## Test Implementation
+
+### Best Practices
+- One concept per test
+- Clear test names that describe behavior
+- Use appropriate assertions
+- Test edge cases and error conditions
+- Mock external dependencies
+
+### Example
+```python
+# Good
+def test_audio_conversion_preserves_duration():
+    """Test that audio conversion maintains original duration."""
+    sample_rate = 16000
+    duration = 1.0  # seconds
+    samples = generate_test_audio(sample_rate, duration)
+    
+    processor = AudioProcessor(sample_rate=sample_rate)
+    converted = processor.process(samples)
+    
+    expected_length = int(duration * sample_rate)
+    assert len(converted) == expected_length
+
+# Bad
+def test_audio():  # Unclear what's being tested
+    p = AudioProcessor(16000)
+    assert p.process(b"123") is not None
+```
+
+## Fixtures and Mocks
+
+### Fixture Scopes
+- `function`: Create new fixture for each test (default)
+- `class`: Create fixture once per test class
+- `module`: Create fixture once per module
+- `session`: Create fixture once per test session
+
+### Example
+```python
+@pytest.fixture(scope="module")
+def voice_agent():
+    """Create voice agent fixture for all tests in module."""
+    agent = VoiceAgent(
+        model="gpt-4-turbo",
+        temperature=0.7
+    )
+    yield agent
+    agent.cleanup()  # Cleanup after all tests
+
+@pytest.fixture
+def mock_openai(monkeypatch):
+    """Mock OpenAI API calls."""
+    def mock_completion(*args, **kwargs):
+        return {"text": "Mocked response"}
+    
+    monkeypatch.setattr(
+        "openai.ChatCompletion.create",
+        mock_completion
+    )
+```
+
+## Parametrized Testing
+
+### Best Practices
+- Test multiple scenarios efficiently
+- Use clear parameter names
+- Include edge cases
+- Document test cases
+
+### Example
+```python
+@pytest.mark.parametrize("sample_rate,channels", [
+    (8000, 1),   # Basic mono
+    (16000, 1),  # Standard mono
+    (44100, 2),  # CD quality stereo
+    (48000, 2),  # High quality stereo
+])
+def test_audio_processor_supports_formats(sample_rate, channels):
+    """Test audio processor supports various formats."""
+    processor = AudioProcessor()
+    audio = generate_test_audio(sample_rate, channels)
+    result = processor.process(audio)
+    assert result.sample_rate == sample_rate
+    assert result.channels == channels
+```
+
+## Async Testing
+
+### Best Practices
+- Use `pytest-asyncio` for async tests
+- Mark async tests with `@pytest.mark.asyncio`
+- Test both success and error cases
+- Handle timeouts appropriately
+
+### Example
+```python
+import pytest
+from voice_agent.core import AsyncVoiceProcessor
+
+@pytest.mark.asyncio
+async def test_async_audio_processing():
+    processor = AsyncVoiceProcessor()
+    audio_data = await load_test_audio()
+    
+    result = await processor.process(audio_data)
+    assert len(result) > 0
+
+@pytest.mark.asyncio
+async def test_async_timeout():
+    processor = AsyncVoiceProcessor(timeout=0.1)
+    with pytest.raises(TimeoutError):
+        await processor.process(large_audio_data)
+```
+
+## Performance Testing
+
+### Best Practices
+- Use benchmarks for critical paths
+- Test with realistic data sizes
+- Monitor memory usage
+- Set performance thresholds
+
+### Example
+```python
+import pytest
+import time
+from voice_agent.core import VoiceProcessor
+
+def test_audio_processing_performance():
+    """Test audio processing meets performance requirements."""
+    processor = VoiceProcessor()
+    audio = generate_test_audio(duration=10)  # 10 seconds
+    
+    start_time = time.perf_counter()
+    processor.process(audio)
+    duration = time.perf_counter() - start_time
+    
+    # Processing should be faster than real-time
+    assert duration < 10.0
+
+@pytest.mark.benchmark
+def test_voice_agent_latency(benchmark):
+    """Benchmark voice agent response time."""
+    agent = VoiceAgent()
+    audio = generate_test_audio(duration=1)
+    
+    result = benchmark(agent.process, audio)
+    assert len(result) > 0
+``` 

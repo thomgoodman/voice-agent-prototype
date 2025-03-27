@@ -1,0 +1,211 @@
+---
+description: Enforces Python best practices based on PEP 8 and modern Python development standards
+globs: ["**/*.py"]
+alwaysApply: true
+---
+
+# Python Best Practices
+
+## Code Layout
+
+### Indentation and Spacing
+- Use 4 spaces for indentation (no tabs)
+- Maximum line length: 88 characters (Black default)
+- No trailing whitespace
+- Use 2 blank lines between top-level functions and classes
+- Use 1 blank line between methods in classes
+- Add blank line after docstrings
+
+### Imports
+```python
+# Correct order with blank lines between groups:
+import os
+import sys
+
+import numpy as np
+import openai
+
+from voice_agent.core import VoiceAgent
+from voice_agent.utils import audio_helpers
+```
+
+## Naming Conventions
+
+### General Rules
+- Package/Module names: `lowercase` with optional underscores
+- Class names: `UpperCamelCase`
+- Function/Variable names: `lowercase_with_underscores`
+- Constants: `UPPERCASE_WITH_UNDERSCORES`
+- Protected instance attributes: `_single_leading_underscore`
+- Private instance attributes: `__double_leading_underscore`
+
+### Examples
+```python
+# Good
+class VoiceProcessor:
+    DEFAULT_SAMPLE_RATE = 16000
+    
+    def __init__(self):
+        self._buffer_size = 1024
+        self.__device_id = None
+    
+    def process_audio(self, audio_data):
+        pass
+
+# Bad
+class voice_processor:  # Should be CamelCase
+    default_sample_rate = 16000  # Constants should be UPPERCASE
+    
+    def ProcessAudio(self, audio_data):  # Should be snake_case
+        pass
+```
+
+## Function and Method Definitions
+
+### Arguments
+- Instance methods: First parameter always `self`
+- Class methods: First parameter always `cls`
+- Use type hints for parameters and return values
+- Use descriptive parameter names
+
+```python
+# Good
+class AudioProcessor:
+    @classmethod
+    def from_config(cls, config: dict) -> "AudioProcessor":
+        return cls()
+    
+    def process_chunk(self, audio_data: bytes, sample_rate: int = 16000) -> bytes:
+        return audio_data
+
+# Bad
+def process(x, y):  # Non-descriptive parameter names, missing type hints
+    return x + y
+```
+
+## Documentation
+
+### Docstrings
+- Use triple double-quotes `"""`
+- First line: Brief description
+- Leave one blank line before detailed description
+- Document parameters using Google style
+- Include type hints in docstrings
+
+```python
+# Good
+def convert_audio(
+    audio_data: bytes,
+    source_rate: int = 44100,
+    target_rate: int = 16000
+) -> bytes:
+    """Convert audio data to target sample rate.
+    
+    Args:
+        audio_data: Raw audio bytes to convert
+        source_rate: Source sample rate in Hz
+        target_rate: Target sample rate in Hz
+    
+    Returns:
+        Converted audio data as bytes
+        
+    Raises:
+        ValueError: If source_rate or target_rate is invalid
+    """
+```
+
+## Error Handling
+
+### Best Practices
+- Be specific with exception types
+- Use context managers (`with` statements)
+- Clean up resources properly
+- Include error messages with exceptions
+
+```python
+# Good
+try:
+    with open(filename, "rb") as f:
+        data = f.read()
+except FileNotFoundError:
+    raise ValueError(f"Audio file {filename} not found")
+except OSError as e:
+    raise RuntimeError(f"Failed to read {filename}: {e}")
+
+# Bad
+try:
+    f = open(filename, "rb")
+    data = f.read()
+    f.close()
+except:  # Too broad!
+    raise Exception("Error")  # Non-descriptive
+```
+
+## Testing
+
+### Guidelines
+- Use pytest for testing
+- One assertion per test
+- Descriptive test names
+- Use fixtures for setup/teardown
+- Test both success and failure cases
+
+```python
+# Good
+import pytest
+
+def test_audio_processor_handles_empty_input():
+    processor = AudioProcessor()
+    with pytest.raises(ValueError, match="Empty audio data"):
+        processor.process(b"")
+
+@pytest.mark.parametrize("sample_rate", [8000, 16000, 44100])
+def test_audio_processor_supports_sample_rates(sample_rate):
+    processor = AudioProcessor()
+    result = processor.process(b"data", sample_rate=sample_rate)
+    assert len(result) > 0
+```
+
+## Type Hints
+
+### Usage
+- Use type hints for all function parameters and return values
+- Use Optional[] for parameters that could be None
+- Use Union[] for multiple possible types
+- Use TypeVar for generic types
+
+```python
+from typing import Optional, Union, TypeVar, List
+
+AudioData = TypeVar("AudioData", bytes, np.ndarray)
+
+def process_audio(
+    data: AudioData,
+    sample_rate: int,
+    channels: Optional[int] = None
+) -> Union[bytes, np.ndarray]:
+    """Process audio data."""
+    pass
+```
+
+## Performance
+
+### Best Practices
+- Use generators for large datasets
+- Prefer list comprehensions over map()/filter()
+- Use appropriate data structures
+- Profile before optimizing
+
+```python
+# Good - Generator for large files
+def audio_chunks(filename: str, chunk_size: int = 1024):
+    with open(filename, "rb") as f:
+        while chunk := f.read(chunk_size):
+            yield chunk
+
+# Good - List comprehension
+filtered = [x for x in data if x > threshold]
+
+# Bad - Using map/filter
+filtered = list(filter(lambda x: x > threshold, data))
+``` 

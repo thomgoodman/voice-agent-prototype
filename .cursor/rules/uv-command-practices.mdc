@@ -1,0 +1,213 @@
+---
+description: Enforces the use of uv for all Python command execution including tests, scripts, and utilities
+globs: ["**/*.py", "**/*.sh", "**/*.md"]
+alwaysApply: true
+---
+
+# uv Command Execution Practices
+
+Always use uv for running Python commands, tests, and scripts. Never use python, pip, pipx, or direct venv activation for command execution.
+
+## Command Execution
+
+### ✅ Good Practices
+
+1. Run Python scripts with `uv run`:
+```bash
+# Run a Python script
+uv run script.py
+
+# Run with arguments
+uv run script.py --arg1 value1
+```
+
+2. Run tests with uv:
+```bash
+# Run pytest
+uv run -m pytest
+
+# Run specific test file
+uv run -m pytest tests/test_voice_interface.py
+
+# Run with options
+uv run -m pytest -xvs tests/
+```
+
+3. Run linters and formatters:
+```bash
+# Run ruff linter
+uv run -m ruff check .
+
+# Run black formatter
+uv run -m black src/
+
+# Run mypy type checker
+uv run -m mypy src/
+```
+
+4. Execute scripts in Makefile or shell scripts:
+```make
+# In Makefile
+test:
+	uv run -m pytest tests/
+
+lint:
+	uv run -m ruff check .
+	uv run -m black --check src/
+```
+
+```bash
+# In shell scripts
+#!/bin/bash
+uv run -m pytest
+```
+
+5. Run interactive shells:
+```bash
+# Run Python REPL
+uv run
+
+# Run IPython
+uv run -m IPython
+```
+
+6. Run with environment variables:
+```bash
+# Set environment variables
+OPENAI_API_KEY=xyz123 uv run script.py
+
+# Or with multiple variables
+ENV=dev LOG_LEVEL=debug uv run -m pytest
+```
+
+### ❌ Bad Practices
+
+1. Running with direct Python:
+```bash
+# DON'T use python directly
+python script.py
+
+# DON'T activate and use python
+source .venv/bin/activate
+python script.py
+```
+
+2. Running tests with pytest directly:
+```bash
+# DON'T use pytest directly
+pytest
+
+# DON'T use python -m pytest
+python -m pytest
+```
+
+3. Using direct pip for running tools:
+```bash
+# DON'T use pip for running
+pip install -e .
+python -m pytest
+```
+
+## CI/CD Usage
+
+### ✅ Good Practices
+
+1. Use uv in GitHub Actions:
+```yaml
+- name: Run tests
+  run: |
+    uv run -m pytest tests/
+```
+
+2. Use uv in other CI systems:
+```bash
+# Jenkins pipeline
+stage('Test') {
+  steps {
+    sh 'uv run -m pytest'
+  }
+}
+```
+
+### ❌ Bad Practices
+
+1. Using python in CI:
+```yaml
+# DON'T use python directly in CI
+- name: Run tests
+  run: python -m pytest
+```
+
+## Development Workflow
+
+### ✅ Good Practices
+
+1. Consistent development workflow:
+```bash
+# Install dependencies
+uv sync
+
+# Run development server
+uv run -m uvicorn app.main:app --reload
+
+# Run tests during development
+uv run -m pytest -xvs tests/test_file.py
+```
+
+2. Use uv with debugging tools:
+```bash
+# Debug with pdb
+uv run -m pdb script.py
+
+# Use with other debuggers
+uv run -m debugpy --listen 5678 script.py
+```
+
+### ❌ Bad Practices
+
+1. Mixing command execution styles:
+```bash
+# DON'T mix execution styles
+uv sync  # Good
+python -m pytest  # Bad
+```
+
+## Voice Agent Specific Examples
+
+### ✅ Good Practices
+
+1. Run the agent demo:
+```bash
+# Run the voice agent demo
+uv run -m voice_agent.demo
+
+# Run with specific configuration
+CONFIG_PATH=./config/dev.json uv run -m voice_agent.demo
+```
+
+2. Run specific component tests:
+```bash
+# Test voice interface
+uv run -m pytest tests/voice/test_input.py
+
+# Test agent core
+uv run -m pytest tests/agent/test_core.py
+```
+
+### ❌ Bad Practices
+
+1. Using direct Python execution:
+```bash
+# DON'T run demo directly
+python -m voice_agent.demo
+
+# DON'T activate venv first
+source .venv/bin/activate
+python -m voice_agent.demo
+```
+
+Remember, by consistently using uv for all command execution, you ensure:
+- Consistent environment usage
+- Proper dependency resolution
+- Improved performance
+- Compatibility with project configurations 

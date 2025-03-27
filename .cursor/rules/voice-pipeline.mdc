@@ -1,0 +1,386 @@
+# Voice Pipeline Best Practices
+
+## Pipeline Configuration
+
+### ✅ Good Practices
+
+1. Clear workflow definition:
+```python
+from agents.voice import Pipeline, Workflow, AudioInput
+
+pipeline = Pipeline(
+    workflow=Workflow.VOICE_IN_VOICE_OUT,
+    stt_model="whisper-1",
+    tts_model="tts-1"
+)
+```
+
+2. Proper audio input handling:
+```python
+# For complete audio files
+result = await pipeline.run(AudioInput(audio_data))
+
+# For streaming audio
+result = await pipeline.run(StreamedAudioInput())
+await input.push(chunk)  # Push chunks as they arrive
+await input.end()  # Signal end of audio
+```
+
+3. Structured event handling:
+```python
+async for event in result.stream():
+    match event.type:
+        case "voice_stream_event_audio":
+            await play_audio(event.audio)
+        case "voice_stream_event_lifecycle":
+            if event.name == "turn_started":
+                mute_microphone()
+            elif event.name == "turn_ended":
+                unmute_microphone()
+        case "voice_stream_event_error":
+            handle_error(event.error)
+```
+
+### ❌ Bad Practices
+
+1. Unstructured pipeline configuration:
+```python
+# DON'T skip essential parameters
+pipeline = Pipeline(workflow=some_workflow)  # Missing model configs
+```
+
+2. Ignoring stream events:
+```python
+# DON'T ignore important events
+async for event in result.stream():
+    if event.type == "voice_stream_event_audio":
+        play_audio(event.audio)
+    # Missing error and lifecycle handling
+```
+
+## Interruption Handling
+
+### ✅ Good Practices
+
+1. Proper turn management:
+```python
+class VoiceManager:
+    def __init__(self):
+        self.is_speaking = False
+        
+    async def handle_events(self, result):
+        async for event in result.stream():
+            if event.type == "voice_stream_event_lifecycle":
+                if event.name == "turn_started":
+                    self.is_speaking = True
+                    await self.mute_mic()
+                elif event.name == "turn_ended":
+                    self.is_speaking = False
+                    await self.unmute_mic()
+```
+
+2. Clean audio management:
+```python
+class AudioHandler:
+    async def process_stream(self, result):
+        audio_buffer = []
+        async for event in result.stream():
+            if event.type == "voice_stream_event_audio":
+                audio_buffer.append(event.audio)
+            elif event.type == "voice_stream_event_lifecycle":
+                if event.name == "turn_ended":
+                    await self.play_buffered_audio(audio_buffer)
+                    audio_buffer.clear()
+```
+
+### ❌ Bad Practices
+
+1. Blocking audio playback:
+```python
+# DON'T block on audio playback
+async for event in result.stream():
+    if event.type == "voice_stream_event_audio":
+        play_audio_sync(event.audio)  # Blocks the event loop
+```
+
+2. Ignoring turn management:
+```python
+# DON'T ignore turn management
+async for event in result.stream():
+    if event.type == "voice_stream_event_audio":
+        play_audio(event.audio)  # Could overlap with user speech
+```
+
+## Error Handling
+
+### ✅ Good Practices
+
+1. Comprehensive error handling:
+```python
+try:
+    result = await pipeline.run(audio_input)
+    async for event in result.stream():
+        if event.type == "voice_stream_event_error":
+            match event.error:
+                case TranscriptionError():
+                    await handle_transcription_error()
+                case AgentError():
+                    await handle_agent_error()
+                case _:
+                    await handle_unknown_error()
+except PipelineError as e:
+    await handle_pipeline_error(e)
+```
+
+2. Graceful degradation:
+```python
+class ErrorHandler:
+    async def handle_stream(self, result):
+        try:
+            async for event in result.stream():
+                if event.type == "voice_stream_event_error":
+                    if self.can_retry(event.error):
+                        await self.retry_operation()
+                    else:
+                        await self.fallback_to_text()
+        except Exception as e:
+            await self.emergency_shutdown()
+```
+
+### ❌ Bad Practices
+
+1. Missing error handling:
+```python
+# DON'T skip error handling
+result = await pipeline.run(audio_input)
+async for event in result.stream():
+    # Missing error event handling
+    pass
+```
+
+2. Unsafe error recovery:
+```python
+# DON'T use unsafe error recovery
+try:
+    await pipeline.run(audio_input)
+except Exception:
+    pipeline = Pipeline()  # Don't recreate pipeline on every error
+```
+
+## Model Configuration
+
+### ✅ Good Practices
+
+1. Explicit model configuration:
+```python
+from agents.voice import PipelineConfig, ModelSettings
+
+config = PipelineConfig(
+    stt_settings=ModelSettings(
+        model="whisper-1",
+        language="en",
+        prompt="Convert user voice commands"
+    ),
+    tts_settings=ModelSettings(
+        model="tts-1",
+        voice="alloy",
+        speed=1.0
+    )
+)
+```
+
+2. Custom model provider:
+```python
+from agents.voice import OpenAIVoiceModelProvider
+
+class CustomVoiceProvider(OpenAIVoiceModelProvider):
+    async def get_stt_model(self, name: str):
+        if name == "custom-whisper":
+            return CustomWhisperModel()
+        return await super().get_stt_model(name)
+
+pipeline = Pipeline(
+    workflow=workflow,
+    config=PipelineConfig(model_provider=CustomVoiceProvider())
+)
+```
+
+### ❌ Bad Practices
+
+1. Hardcoded model settings:
+```python
+# DON'T hardcode model settings
+pipeline = Pipeline(
+    workflow=workflow,
+    stt_model="whisper-1",  # Should use config object
+    tts_model="tts-1"
+)
+```
+
+## Tracing and Debugging
+
+### ✅ Good Practices
+
+1. Proper trace configuration:
+```python
+from agents.voice import PipelineConfig
+
+config = PipelineConfig(
+    workflow_name="password_reset",
+    trace_id="user_123_session_456",
+    upload_audio_files=True  # For debugging
+)
+
+pipeline = Pipeline(workflow=workflow, config=config)
+```
+
+2. Structured logging:
+```python
+import logging
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def trace_voice_interaction():
+    logger = logging.getLogger("voice_pipeline")
+    try:
+        logger.info("Starting voice interaction")
+        yield
+    finally:
+        logger.info("Completed voice interaction")
+
+async def handle_voice():
+    async with trace_voice_interaction():
+        result = await pipeline.run(audio_input)
+```
+
+### ❌ Bad Practices
+
+1. Disabling tracing in production:
+```python
+# DON'T disable tracing in production
+config = PipelineConfig(
+    disable_tracing=True  # Makes debugging difficult
+)
+```
+
+## Activity Detection
+
+### ✅ Good Practices
+
+1. Proper streaming setup:
+```python
+async def handle_streaming():
+    input_stream = StreamedAudioInput()
+    result = await pipeline.run(input_stream)
+    
+    # Start processing in background
+    process_task = asyncio.create_task(process_stream(result))
+    
+    # Push audio chunks as they arrive
+    async for chunk in audio_source:
+        await input_stream.push(chunk)
+        if detect_silence(chunk):
+            await input_stream.end()
+            break
+    
+    await process_task
+```
+
+2. Chunk size optimization:
+```python
+class AudioStreamHandler:
+    CHUNK_SIZE = 1024  # Optimal for voice detection
+    
+    async def stream_audio(self):
+        input_stream = StreamedAudioInput()
+        while True:
+            chunk = await self.get_audio_chunk(self.CHUNK_SIZE)
+            if not chunk:
+                break
+            await input_stream.push(chunk)
+            
+            if self.detect_end_of_speech(chunk):
+                await input_stream.end()
+                break
+```
+
+### ❌ Bad Practices
+
+1. Inefficient streaming:
+```python
+# DON'T use small chunks
+async for tiny_chunk in audio_source:  # Chunks too small
+    await input_stream.push(tiny_chunk)
+```
+
+2. Missing end signal:
+```python
+# DON'T forget to signal stream end
+async for chunk in audio_source:
+    await input_stream.push(chunk)
+# Missing await input_stream.end()
+```
+
+## Resource Management
+
+### ✅ Good Practices
+
+1. Proper cleanup:
+```python
+class VoicePipelineManager:
+    def __init__(self):
+        self.pipeline = None
+        
+    async def setup(self):
+        self.pipeline = Pipeline(
+            workflow=self.workflow,
+            config=self.config
+        )
+        
+    async def cleanup(self):
+        if self.pipeline:
+            await self.pipeline.close()
+            self.pipeline = None
+            
+    async def __aenter__(self):
+        await self.setup()
+        return self
+        
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.cleanup()
+```
+
+2. Memory management:
+```python
+class AudioBufferManager:
+    def __init__(self, max_size: int = 1024 * 1024):
+        self.max_size = max_size
+        self.current_size = 0
+        self.buffers = []
+        
+    def add_buffer(self, audio: bytes):
+        self.current_size += len(audio)
+        self.buffers.append(audio)
+        
+        while self.current_size > self.max_size:
+            old = self.buffers.pop(0)
+            self.current_size -= len(old)
+```
+
+### ❌ Bad Practices
+
+1. Resource leaks:
+```python
+# DON'T forget to cleanup
+pipeline = Pipeline(workflow=workflow)
+await pipeline.run(audio)
+# Missing cleanup
+```
+
+2. Unbounded memory usage:
+```python
+# DON'T store unlimited audio
+audio_chunks = []
+async for chunk in audio_stream:
+    audio_chunks.append(chunk)  # No size limit
+``` 
