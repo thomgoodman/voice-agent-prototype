@@ -1,5 +1,12 @@
 # Changelog
 
+## [2024-05-10 03:59 AM] - Architecture Documentation Update
+- Updated mermaid architecture diagrams to reflect tool calling mechanism
+- Added Tool Manager component to the architecture diagram
+- Improved data flow documentation to show the tool calling process
+- Updated component responsibilities in architecture documentation
+- Made Password Reset Tool visually distinct as a tool component
+
 ## [2024-05-10 03:45 AM] - Documentation Update
 - Added test coverage information to README
 - Updated testing documentation with coverage commands

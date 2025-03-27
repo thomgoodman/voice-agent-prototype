@@ -50,10 +50,12 @@ IMPORTANT
 graph LR
     A[Voice Input] --> B[Speech-to-Text]
     B --> C[Agent Core]
-    C --> D[Tools/Functions]
+    C --> D[Tool Calling]
+    D --> E[Password Reset Tool]
+    E --> D
     D --> C
-    C --> E[Text-to-Speech]
-    E --> F[Voice Output]
+    C --> F[Text-to-Speech]
+    F --> G[Voice Output]
 ```
 
 ### Dependencies
