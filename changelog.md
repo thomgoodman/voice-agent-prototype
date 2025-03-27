@@ -150,3 +150,17 @@
 - Updated VoiceInterface to correctly parse and play WAV format data
 - Added format detection for audio data to ensure proper playback
 - Fixed noisy audio output issue in demo application
+
+## [2024-05-11 20:45] Improved Voice Recording Experience
+- Increased audio recording time from ~2 seconds to 5 seconds
+- Added countdown timer during recording to show seconds remaining
+- Updated demo script to provide clearer user instructions
+- Added user input prompt before starting recording
+- Improved feedback throughout the recording process
+
+## [2024-05-11 20:15] Improved Input Validation
+- Added proper input validation for non-password related queries
+- Fixed issue where any input would trigger a password reset
+- Improved error message for unrelated voice commands
+- Updated agent to correctly respond to general queries
+- Fixed test suite to align with new validation logic

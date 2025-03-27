@@ -88,12 +88,13 @@ class VoiceAgent:
 
             logger.info(f"Processing user input: '{user_input}'")
 
-            # For MVP, treat any non-empty input as a potential password reset request
-            # This improves usability for demo purposes
-            enhanced_prompt = user_input
-            if not any(kw in user_input.lower() for kw in ["password", "reset", "forgot", "credentials", "login"]):
-                logger.info("Input doesn't explicitly mention password reset, augmenting the prompt")
-                enhanced_prompt = f"{user_input}. I need to reset my password."
+            # Check if this is likely a password reset request
+            password_keywords = ["password", "reset", "forgot", "credentials", "login", "can't log in", "locked out"]
+            if not any(kw in user_input.lower() for kw in password_keywords):
+                logger.info("Input doesn't appear to be related to password reset")
+                return PasswordResetResult.error_response(
+                    "I'm sorry, I didn't understand that. I can help you reset your password if needed."
+                )
 
             # Process with OpenAI
             response = await self._client.chat.completions.create(
@@ -103,7 +104,7 @@ class VoiceAgent:
                 tool_choice="auto",  # Let the model decide if it needs to call the tool
                 messages=[
                     {"role": "system", "content": self._system_prompt},
-                    {"role": "user", "content": enhanced_prompt}
+                    {"role": "user", "content": user_input}
                 ]
             )
 
@@ -135,9 +136,15 @@ class VoiceAgent:
                         logger.info(f"Password reset result: {result}")
                         return result
             
-            # For MVP, if no tool call was made, assume user wants to reset password
-            logger.info("No tool calls detected, executing default password reset for MVP")
-            return await self._reset_tool(None)
+            # If the model didn't call the tool, but the input seems password-related,
+            # check what the model said
+            content = message.content or ""
+            logger.info(f"No tool calls detected. Assistant response: {content}")
+            
+            # If the assistant is asking for clarification, pass that message to the user
+            return PasswordResetResult.error_response(
+                content or "I'm sorry, I couldn't process your password reset request. Please try again."
+            )
             
         except Exception as e:
             # Handle all exceptions with a friendly error response

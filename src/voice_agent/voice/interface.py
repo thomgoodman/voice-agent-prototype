@@ -79,16 +79,28 @@ class VoiceInterface:
                 frames_per_buffer=self.chunk_size
             )
             
-            print("Recording... Speak now.")
+            print("Recording... Speak now. (5 seconds)")
             
             # Initialize buffer to store recorded audio chunks
             frames = []
             
-            # For MVP, we'll use a simple approach - just record for a few seconds
-            # In a production system, we would implement voice activity detection (VAD)
-            for i in range(0, min(20, self.max_chunks)):
+            # Calculate chunks per second
+            chunks_per_second = int(self.sample_rate / self.chunk_size)
+            
+            # Record for 5 seconds (increased from the previous ~2 seconds)
+            # This gives users more time to speak
+            recording_seconds = 5
+            total_chunks = chunks_per_second * recording_seconds
+            
+            for i in range(total_chunks):
                 data = stream.read(self.chunk_size, exception_on_overflow=False)
                 frames.append(data)
+                
+                # Print countdown at each second
+                if i % chunks_per_second == 0 and i > 0:
+                    seconds_left = recording_seconds - (i // chunks_per_second)
+                    if seconds_left > 0:
+                        print(f"{seconds_left} seconds left...")
                 
                 # Small pause to allow for cooperative multitasking in async context
                 if i % 5 == 0:

@@ -65,8 +65,11 @@ class VoiceAgentDemo:
     async def run(self):
         """Run the complete voice agent workflow."""
         print("\n==== Voice Agent Password Reset Demo ====")
-        print("Say 'reset my password' when recording begins...")
-        time.sleep(1)  # Short pause before recording
+        print("This demo will record your voice input for 5 seconds.")
+        print("When recording begins, say something like 'I need to reset my password'")
+        print("For non-password requests, the agent will respond with an error message.")
+        print("\nPress Enter to begin recording...")
+        input()  # Wait for user to press Enter
         
         try:
             # Step 1: Capture voice input
