@@ -32,4 +32,4 @@ class VoiceContext(BaseModel):
     
     session_id: str = Field(description="Unique identifier for the voice session")
     user_id: Optional[str] = Field(None, description="User identifier if available")
-    audio_quality: float = Field(1.0, description="Audio quality score (0.0-1.0)") 
+    audio_quality: float = Field(1.0, description="Audio quality score (0.0-1.0)", ge=0.0, le=1.0) 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2024-06-15 21:50] - Test Suite Maintenance
+- Fixed test_text_to_speech_conversion to properly handle WAV header in audio data
+- Added validation constraints to VoiceContext.audio_quality to enforce 0.0-1.0 range
+- Fixed test_capture_audio by dynamically calculating the required number of chunks
+- Updated tests to align with implementation details
+- All tests now passing
+
 ## [2024-05-10 03:59 AM] - Architecture Documentation Update
 - Updated mermaid architecture diagrams to reflect tool calling mechanism
 - Added Tool Manager component to the architecture diagram

@@ -29,8 +29,12 @@ async def test_capture_audio(voice_interface):
     mock_stream = MagicMock()
     
     # Setup stream to return a sequence of audio chunks
+    # Calculate the number of chunks needed for 5 seconds of audio
+    chunks_per_second = int(voice_interface.sample_rate / voice_interface.chunk_size)
+    total_chunks = chunks_per_second * 5  # 5 seconds of recording
+    
     # Create enough chunks to satisfy the loop in capture_audio
-    chunks = [b'\x00\x00' * 1024] * 20  # 20 chunks to match the range in capture_audio
+    chunks = [b'\x00\x00' * voice_interface.chunk_size] * total_chunks
     mock_stream.read.side_effect = chunks
     
     mock_pyaudio.open.return_value = mock_stream
@@ -40,7 +44,7 @@ async def test_capture_audio(voice_interface):
         
         # Check that audio data contains the mocked chunks
         assert len(audio_data) > 0
-        assert mock_stream.read.call_count >= 1
+        assert mock_stream.read.call_count == total_chunks
         assert mock_stream.close.called
         assert mock_pyaudio.terminate.called
 

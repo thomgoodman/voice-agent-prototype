@@ -43,11 +43,13 @@ async def test_text_to_speech_conversion(text_processor):
         
         result = await text_processor.text_to_speech(test_text)
         
-        assert result == b"synthesized_audio_data"
+        # The result includes WAV headers, so we just check that the original content is included
+        assert b"synthesized_audio_data" in result
         mock_create.assert_called_once_with(
             model=text_processor.speech_model,
             voice=text_processor.voice,
-            input=test_text
+            input=test_text,
+            response_format="pcm"  # Check that we're requesting PCM format
         )
 
 @pytest.mark.asyncio
