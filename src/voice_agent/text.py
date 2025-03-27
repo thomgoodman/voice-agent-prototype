@@ -94,10 +94,23 @@ class TextProcessor:
         if not text:
             raise ValueError("Empty text input")
 
+        # Request output in PCM format directly
         response = await self.client.audio.speech.create(
             model=self.speech_model,
             voice=self.voice,
-            input=text
+            input=text,
+            response_format="pcm"  # Use PCM format which is raw audio
         )
         
-        return response.content
+        # Get the binary content
+        audio_data = response.content
+        
+        # Create WAV headers for the raw PCM data
+        buffer = io.BytesIO()
+        with wave.open(buffer, 'wb') as wav_file:
+            wav_file.setnchannels(1)  # Mono
+            wav_file.setsampwidth(2)  # 16-bit
+            wav_file.setframerate(24000)  # 24kHz (OpenAI TTS PCM format)
+            wav_file.writeframes(audio_data)
+        
+        return buffer.getvalue()

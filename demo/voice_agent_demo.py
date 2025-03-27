@@ -89,7 +89,11 @@ class VoiceAgentDemo:
             result = await self.agent.run(text)
             
             # Format the response for TTS
-            response_text = f"{result.message} Your temporary password is: {result.temporary_password}"
+            if result.success:
+                response_text = f"{result.message} Your temporary password is: {result.temporary_password}"
+            else:
+                response_text = result.message
+                
             print(f"\n4. Agent response: {response_text}")
             
             # Step 5: Convert response to speech

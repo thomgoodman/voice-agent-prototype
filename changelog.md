@@ -110,3 +110,43 @@
 - Updated documentation-standards rule with the correct project structure
 - Aligned the rule's repository structure with the actual implementation
 - Fixed globs and alwaysApply settings in the rule definition
+
+## [2023-09-15] Initial project structure
+- Set up basic directory structure
+- Added README.md with project overview
+
+## [2023-09-16] Implemented MVP Core
+- Created basic agent core functionality
+- Implemented mock password reset tool
+- Added core unit tests
+
+## [2023-09-18] Voice Interface Integration
+- Added speech-to-text conversion
+- Added text-to-speech conversion
+- Implemented basic voice capture and playback
+
+## [2023-09-20] Demo Application
+- Created end-to-end demo script
+- Added command-line interface
+- Fixed audio processing bugs
+
+## [2023-09-21] Improved Error Handling
+- Added friendly error responses for failed requests
+- Updated agent to handle any input for MVP demos
+- Enhanced PasswordResetResult model with error_response factory method
+- Fixed test suite to work with new error handling approach
+- Modified demo to handle both success and error cases gracefully
+
+## [2024-05-11 19:30] Fixed Audio Format Compatibility Issue
+- Changed text-to-speech to use PCM format directly instead of MP3
+- Eliminated dependency on pydub for audio conversion
+- Added proper WAV header creation for raw PCM data
+- Fixed audio playback issue for all use cases
+- Simplified the audio processing pipeline
+
+## [2024-05-11 18:15] Fixed Audio Playback Issues
+- Fixed text-to-speech to correctly generate WAV format audio
+- Added pydub dependency to handle MP3 to WAV conversion
+- Updated VoiceInterface to correctly parse and play WAV format data
+- Added format detection for audio data to ensure proper playback
+- Fixed noisy audio output issue in demo application

@@ -72,8 +72,8 @@ class MockAgent(VoiceAgent):
     
     async def run(self, user_input: str) -> PasswordResetResult:
         """Override run method for testing."""
-        if not user_input:
-            raise ValueError("Invalid request: Input cannot be empty")
+        if not user_input or not isinstance(user_input, str):
+            return PasswordResetResult.error_response()
             
         if any(kw in user_input.lower() for kw in ["reset", "password"]):
             return PasswordResetResult(
@@ -82,7 +82,8 @@ class MockAgent(VoiceAgent):
                 temporary_password="Temp123!"
             )
             
-        raise ValueError("Invalid request: This doesn't appear to be a password reset request")
+        # Return a friendly error for non-password reset queries
+        return PasswordResetResult.error_response()
 
 
 @pytest.mark.asyncio
@@ -112,8 +113,19 @@ class TestVoiceAgent:
 
     async def test_agent_handles_invalid_request(self, agent):
         """Test agent properly handles invalid requests."""
-        with pytest.raises(ValueError, match="Invalid request: Input cannot be empty"):
-            await agent.run("")
+        result = await agent.run("")
+        assert isinstance(result, PasswordResetResult)
+        assert result.success is False
+        assert "I'm sorry" in result.message
+        assert result.temporary_password is None
+
+    async def test_agent_handles_unrelated_request(self, agent):
+        """Test agent properly handles unrelated requests."""
+        result = await agent.run("What's the weather like today?")
+        assert isinstance(result, PasswordResetResult)
+        assert result.success is False
+        assert "I'm sorry" in result.message
+        assert result.temporary_password is None
 
     async def test_agent_tool_execution(self, agent):
         """Test agent properly executes password reset tool."""

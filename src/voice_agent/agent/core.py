@@ -80,65 +80,66 @@ class VoiceAgent:
             
         Returns:
             PasswordResetResult containing operation status and temporary password
-            
-        Raises:
-            ValueError: If the input is invalid or not a password reset request
         """
-        if not user_input or not isinstance(user_input, str):
-            raise ValueError("Invalid request: Input cannot be empty")
+        try:
+            if not user_input or not isinstance(user_input, str):
+                logger.warning("Empty or invalid input received")
+                return PasswordResetResult.error_response()
 
-        logger.info(f"Processing user input: '{user_input}'")
+            logger.info(f"Processing user input: '{user_input}'")
 
-        # Process with OpenAI
-        response = await self._client.chat.completions.create(
-            model=self.model,
-            temperature=self._temperature,
-            tools=self.tools,
-            tool_choice="auto",  # Let the model decide if it needs to call the tool
-            messages=[
-                {"role": "system", "content": self._system_prompt},
-                {"role": "user", "content": user_input}
-            ]
-        )
+            # For MVP, treat any non-empty input as a potential password reset request
+            # This improves usability for demo purposes
+            enhanced_prompt = user_input
+            if not any(kw in user_input.lower() for kw in ["password", "reset", "forgot", "credentials", "login"]):
+                logger.info("Input doesn't explicitly mention password reset, augmenting the prompt")
+                enhanced_prompt = f"{user_input}. I need to reset my password."
 
-        # Log the response
-        logger.info(f"Model response: {response.model_dump_json(indent=2)}")
-        
-        message = response.choices[0].message
-        
-        # Check if the model decided to call the tool
-        if message.tool_calls:
-            logger.info(f"Tool calls detected: {len(message.tool_calls)}")
+            # Process with OpenAI
+            response = await self._client.chat.completions.create(
+                model=self.model,
+                temperature=self._temperature,
+                tools=self.tools,
+                tool_choice="auto",  # Let the model decide if it needs to call the tool
+                messages=[
+                    {"role": "system", "content": self._system_prompt},
+                    {"role": "user", "content": enhanced_prompt}
+                ]
+            )
+
+            # Log the response
+            logger.info(f"Model response: {response.model_dump_json(indent=2)}")
             
-            for tool_call in message.tool_calls:
-                # Log tool call details
-                logger.info(f"Tool call ID: {tool_call.id}")
-                logger.info(f"Function: {tool_call.function.name}")
-                logger.info(f"Arguments: {tool_call.function.arguments}")
+            message = response.choices[0].message
+            
+            # Check if the model decided to call the tool
+            if message.tool_calls:
+                logger.info(f"Tool calls detected: {len(message.tool_calls)}")
                 
-                if tool_call.function.name == "reset_password":
-                    # Parse arguments
-                    args = json.loads(tool_call.function.arguments)
-                    user_id = args.get("user_id")
+                for tool_call in message.tool_calls:
+                    # Log tool call details
+                    logger.info(f"Tool call ID: {tool_call.id}")
+                    logger.info(f"Function: {tool_call.function.name}")
+                    logger.info(f"Arguments: {tool_call.function.arguments}")
                     
-                    # Call the password reset tool
-                    logger.info(f"Executing password reset for user_id: {user_id}")
-                    result = await self._reset_tool(user_id)
-                    
-                    # Log the result
-                    logger.info(f"Password reset result: {result}")
-                    return result
-        
-        # If no tool call was made, check the assistant's response
-        content = message.content or ""
-        logger.info(f"No tool calls detected. Assistant response: {content}")
-        
-        # If the assistant is asking for clarification or discussing password reset,
-        # indicate that to the caller with a more descriptive exception
-        if any(kw in content.lower() for kw in ["password", "reset", "forgot", "credentials", "login"]):
-            logger.info("Password-related response detected, but no tool call made")
-            raise ValueError("Clarification needed: The assistant needs more information to reset your password")
-        
-        # If the response doesn't seem related to password reset
-        logger.warning("Response not related to password reset")
-        raise ValueError("Invalid request: This doesn't appear to be a password reset request") 
+                    if tool_call.function.name == "reset_password":
+                        # Parse arguments
+                        args = json.loads(tool_call.function.arguments)
+                        user_id = args.get("user_id")
+                        
+                        # Call the password reset tool
+                        logger.info(f"Executing password reset for user_id: {user_id}")
+                        result = await self._reset_tool(user_id)
+                        
+                        # Log the result
+                        logger.info(f"Password reset result: {result}")
+                        return result
+            
+            # For MVP, if no tool call was made, assume user wants to reset password
+            logger.info("No tool calls detected, executing default password reset for MVP")
+            return await self._reset_tool(None)
+            
+        except Exception as e:
+            # Handle all exceptions with a friendly error response
+            logger.error(f"Error processing request: {str(e)}", exc_info=True)
+            return PasswordResetResult.error_response() 

@@ -120,14 +120,55 @@ class VoiceInterface:
         """
         if not audio_data:
             raise ValueError("Empty audio data")
+            
+        try:
+            # Check if this looks like WAV data with a header
+            if audio_data.startswith(b'RIFF') and b'WAVE' in audio_data[0:12]:
+                # If it's a WAV file, parse the header to get format information
+                import wave
+                import io
+                
+                wav_file = wave.open(io.BytesIO(audio_data), 'rb')
+                channels = wav_file.getnchannels()
+                sample_width = wav_file.getsampwidth()
+                sample_rate = wav_file.getframerate()
+                
+                # Get just the audio data without the header
+                wav_file.rewind()
+                # Skip the header bytes
+                frame_count = wav_file.getnframes()
+                audio_data = wav_file.readframes(frame_count)
+                
+                # Update format to match the WAV file
+                if sample_width == 1:
+                    pyaudio_format = pyaudio.paInt8
+                elif sample_width == 2:
+                    pyaudio_format = pyaudio.paInt16
+                elif sample_width == 3:
+                    pyaudio_format = pyaudio.paInt24
+                elif sample_width == 4:
+                    pyaudio_format = pyaudio.paInt32
+                else:
+                    pyaudio_format = self.pyaudio_format
+            else:
+                # If not WAV data, use our default format
+                channels = self.channels
+                sample_rate = self.sample_rate
+                pyaudio_format = self.pyaudio_format
+        except Exception as e:
+            # If we can't parse as WAV, fall back to default format
+            print(f"Warning: Could not parse audio format, using default: {str(e)}")
+            channels = self.channels
+            sample_rate = self.sample_rate
+            pyaudio_format = self.pyaudio_format
         
         p = pyaudio.PyAudio()
         
         try:
             stream = p.open(
-                format=self.pyaudio_format,
-                channels=self.channels,
-                rate=self.sample_rate,
+                format=pyaudio_format,
+                channels=channels,
+                rate=sample_rate,
                 output=True
             )
             
