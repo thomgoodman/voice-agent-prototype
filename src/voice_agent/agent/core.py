@@ -69,7 +69,19 @@ class VoiceAgent:
         # Agent instructions
         self._system_prompt = """You are a helpful voice assistant that helps users reset their passwords.
         When a user requests a password reset, use the reset_password tool to generate a temporary password.
-        Always verify the request is about password reset before proceeding.
+        
+        Consider the following phrases as password reset requests:
+        - "reset my password"
+        - "forgot my password"
+        - "can't login" or "can't log in"
+        - "trouble logging in"
+        - "having issues with my password"
+        - "locked out of my account"
+        - "need a new password"
+        
+        When you detect any request related to login problems or password issues, use the reset_password tool.
+        Always assume login trouble is related to password issues unless explicitly stated otherwise.
+        
         Provide clear, concise responses suitable for voice interaction."""
 
     async def run(self, user_input: str) -> PasswordResetResult:
@@ -89,7 +101,7 @@ class VoiceAgent:
             logger.info(f"Processing user input: '{user_input}'")
 
             # Check if this is likely a password reset request
-            password_keywords = ["password", "reset", "forgot", "credentials", "login", "can't log in", "locked out"]
+            password_keywords = ["password", "reset", "forgot", "credentials", "login", "can't log in", "locked out", "trouble logging in", "issues", "can't access", "need a new password"]
             if not any(kw in user_input.lower() for kw in password_keywords):
                 logger.info("Input doesn't appear to be related to password reset")
                 return PasswordResetResult.error_response(
